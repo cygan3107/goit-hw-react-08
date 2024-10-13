@@ -50,31 +50,59 @@
 // }
 
 import "./App.css";
-import ContactForm from "./components/ContactForm/ContactForm";
-import ContactList from "./components/ContactList/ContactList";
-import SearchBox from "./components/SearchBox/SearchBox";
-
+import { Route, Routes } from "react-router-dom";
+import { SharedLayout } from "./components/SharedLayout/SharedLayout";
+import { lazy, useEffect } from "react";
+import { PrivateRoute } from "./components/PrivateRoute";
+import { RestrictedRoute } from "./components/RestrictedRoute";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchContacts } from "./redux/operations";
-import { useEffect } from "react";
-import { selectError, selectIsLoading } from "./redux/selectors";
+import { refreshUser } from "./redux/auth/operations";
+import { selectIsRefreshing } from "./redux/auth/selectors";
+
+const HomePage = lazy(() => import("./pages/Home"));
+const LoginPage = lazy(() => import("./pages/Login"));
+const RegisterPage = lazy(() => import("./pages/Register"));
+const PhonebookPage = lazy(() => import("./pages/Phonebook"));
 
 export default function App() {
   const dispatch = useDispatch();
-  const error = useSelector(selectError);
-  const isLoading = useSelector(selectIsLoading);
+  const isRefreshing = useSelector(selectIsRefreshing);
 
   useEffect(() => {
-    dispatch(fetchContacts());
+    dispatch(refreshUser());
   }, [dispatch]);
 
-  return (
-    <div>
-      <h1>Phonebook</h1>
-      <ContactForm />
-      <SearchBox />
-      <ContactList />
-      {isLoading && !error && <b>Loading...</b>}
-    </div>
+  return isRefreshing ? (
+    <p>Refreshing user...</p>
+  ) : (
+    <SharedLayout>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="/login"
+          element={
+            <RestrictedRoute
+              redirectTo="/phonebook"
+              component={<LoginPage />}
+            />
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <RestrictedRoute
+              redirectTo="/phonebook"
+              component={<RegisterPage />}
+            />
+          }
+        />
+        <Route
+          path="/phonebook"
+          element={
+            <PrivateRoute redirectTo="/login" component={<PhonebookPage />} />
+          }
+        />
+      </Routes>
+    </SharedLayout>
   );
 }
