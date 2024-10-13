@@ -28,7 +28,7 @@ import Fuse from "fuse.js";
 
 export default function ContactList() {
   const contacts = useSelector(selectContacts);
-  const searchContact = useSelector(selectFilters);
+  const searchWord = useSelector(selectFilters);
 
   const fuseOptions = {
     minMatchCharLength: 2,
@@ -43,7 +43,6 @@ export default function ContactList() {
     if (searchContacts.length > 0) return searchContacts.map((el) => el.item);
     return allContacts;
   };
-
   return (
     <ul className={css.contact_list}>
       {contactToRender(contacts, searchContactList).map((contact) => {
